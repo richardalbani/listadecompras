@@ -4,7 +4,8 @@ const Database = require("sqlite3");
 const path = require("path");
 
 const app = express();
-const db = new Database("banco.db");
+const sqlite3 = require('sqlite3').verbose();
+const db = new sqlite3.Database('banco.db');
 
 app.use(cors());
 app.use(express.json());
