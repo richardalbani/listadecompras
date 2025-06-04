@@ -1,3 +1,4 @@
+// === frontend/index.html ===
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -5,9 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Minhas Compras</title>
   <style>
-    body { font-family: Arial; padding: 20px; }
-    .item { margin-bottom: 10px; }
-    .admin { color: green; }
+    body { font-family: Arial; padding: 20px; background: #000; color: #fff; }
+    input, button { margin: 5px; padding: 5px; }
+    input { background: #222; color: #fff; border: 1px solid #555; }
+    button { background: #444; color: #fff; border: none; cursor: pointer; }
+    li { margin-bottom: 8px; }
+    h1, h2, h3 { color: #0f0; }
   </style>
 </head>
 <body>
@@ -25,6 +29,9 @@
     <button onclick="adicionarItem()">Adicionar</button>
     <h3>Lista de Compras</h3>
     <ul id="lista"></ul>
+    <div id="admin-area">
+      <ul id="usuarios"></ul>
+    </div>
   </div>
   <script src="app.js"></script>
 </body>
