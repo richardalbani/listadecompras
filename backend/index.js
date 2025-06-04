@@ -1,11 +1,21 @@
 const express = require("express");
 const cors = require("cors");
 const sqlite3 = require("better-sqlite3");
+const path = require("path");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// Servir arquivos estáticos da pasta "public"
+app.use(express.static(path.join(__dirname, "public")));
+
+// Rota raiz para servir o index.html
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 const db = new sqlite3("banco.db");
 
@@ -48,7 +58,8 @@ function autenticar(req, res, next) {
   next();
 }
 
-// Rota para admin listar todos os usuários e seus itens (botão cascata)
+// Rotas API
+
 app.get("/users", autenticar, (req, res) => {
   if (req.user.nivel !== "admin") return res.status(403).json({ erro: "Sem permissão" });
   const users = db.prepare("SELECT id, nome, nivel FROM users").all();
@@ -59,7 +70,6 @@ app.get("/users", autenticar, (req, res) => {
   res.json(usersWithItems);
 });
 
-// Rota para admin editar usuário
 app.put("/users/:id", autenticar, (req, res) => {
   if (req.user.nivel !== "admin") return res.status(403).json({ erro: "Sem permissão" });
   const { nome, nivel } = req.body;
@@ -70,7 +80,6 @@ app.put("/users/:id", autenticar, (req, res) => {
   res.json({ sucesso: true });
 });
 
-// Rota para admin deletar usuário e seus itens
 app.delete("/users/:id", autenticar, (req, res) => {
   if (req.user.nivel !== "admin") return res.status(403).json({ erro: "Sem permissão" });
   const { id } = req.params;
@@ -81,7 +90,6 @@ app.delete("/users/:id", autenticar, (req, res) => {
   res.json({ sucesso: true });
 });
 
-// Listar itens (admin vê todos, user vê só os seus)
 app.get("/itens", autenticar, (req, res) => {
   if (req.user.nivel === "admin") {
     const itens = db.prepare("SELECT * FROM itens").all();
@@ -91,7 +99,6 @@ app.get("/itens", autenticar, (req, res) => {
   res.json(itens);
 });
 
-// Criar item (associado ao user logado)
 app.post("/itens", autenticar, (req, res) => {
   const { nome, quantidade, valor } = req.body;
   db.prepare("INSERT INTO itens (user_id, nome, quantidade, valor) VALUES (?, ?, ?, ?)")
@@ -99,7 +106,6 @@ app.post("/itens", autenticar, (req, res) => {
   res.json({ sucesso: true });
 });
 
-// Editar item (admin pode qualquer item, user só seus)
 app.put("/itens/:id", autenticar, (req, res) => {
   const { nome, quantidade, valor } = req.body;
   const { id } = req.params;
@@ -112,7 +118,6 @@ app.put("/itens/:id", autenticar, (req, res) => {
   res.json({ sucesso: true });
 });
 
-// Deletar item (admin pode qualquer item, user só seus)
 app.delete("/itens/:id", autenticar, (req, res) => {
   const { id } = req.params;
   const item = db.prepare("SELECT * FROM itens WHERE id = ?").get(id);
@@ -123,4 +128,8 @@ app.delete("/itens/:id", autenticar, (req, res) => {
   res.json({ sucesso: true });
 });
 
-app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT));
+// Start servidor
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});
+
