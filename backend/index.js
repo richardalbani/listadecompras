@@ -37,9 +37,9 @@ db.prepare(`CREATE TABLE IF NOT EXISTS usuarios (
 
 // Inserir usuários padrão (ignorar se já existir)
 const usuariosPadrao = [
-  ["admin", "admin123", 1],
-  ["user1", "senha1", 0],
-  ["user2", "senha2", 0],
+  ["Richard", "Richard123", 1],
+  ["BB", "Italo1103", 0],
+  ["Joao", "Joao123", 0],
   ["user3", "senha3", 0],
 ];
 
