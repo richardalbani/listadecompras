@@ -1,8 +1,8 @@
-// === index.js (Backend) ===
 const express = require("express");
 const cors = require("cors");
 const Database = require("better-sqlite3");
 const path = require("path");
+
 const app = express();
 const db = new Database("banco.db");
 
@@ -10,15 +10,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-// Tabelas
-
-// Itens por usuário
-// Cada item terá um campo "usuario" para sabermos quem adicionou
-
-// Criação das tabelas
-
-// Tabela de itens com campo de usuário
-
+// Criar tabela de itens
 db.prepare(`CREATE TABLE IF NOT EXISTS itens (
   id INTEGER PRIMARY KEY,
   nome TEXT,
@@ -27,26 +19,25 @@ db.prepare(`CREATE TABLE IF NOT EXISTS itens (
   usuario TEXT
 )`).run();
 
-// Tabela de usuários
-
+// Criar tabela de usuários
 db.prepare(`CREATE TABLE IF NOT EXISTS usuarios (
   usuario TEXT PRIMARY KEY,
   senha TEXT,
   admin INTEGER
 )`).run();
 
-// Inserir usuários padrão (ignorar se já existir)
+// Limpar usuários antigos e inserir apenas os 4 definidos
+db.prepare("DELETE FROM usuarios").run();
+
 const usuariosPadrao = [
-  ["richard", "richard123", 1],
-  ["amor", "amor123", 0],
-  ["joao", "joao123", 0],
-  ["teste", "teste123", 0],
+  ["Richard", "Richard", 1], // Admin
+  ["Amor", "Amor", 0],
+  ["Joao", "Joao", 0],
+  ["Teste", "Teste", 0],
 ];
 
 for (const [usuario, senha, admin] of usuariosPadrao) {
-  try {
-    db.prepare("INSERT INTO usuarios (usuario, senha, admin) VALUES (?, ?, ?)").run(usuario, senha, admin);
-  } catch (e) {}
+  db.prepare("INSERT INTO usuarios (usuario, senha, admin) VALUES (?, ?, ?)").run(usuario, senha, admin);
 }
 
 // Login
@@ -93,3 +84,4 @@ app.delete("/api/usuarios/:usuario", (req, res) => {
 });
 
 app.listen(3000, () => console.log("Servidor rodando na porta 3000"));
+
