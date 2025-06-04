@@ -1,48 +1,66 @@
 const express = require("express");
 const cors = require("cors");
-const Database = require("better-sqlite3");
-const path = require("path");
+const sqlite3 = require("better-sqlite3");
 const app = express();
-const db = new Database("banco.db");
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "../frontend")));
 
-// Criação da tabela se não existir
-db.prepare("CREATE TABLE IF NOT EXISTS itens (id INTEGER PRIMARY KEY, nome TEXT, quantidade INTEGER, preco REAL)").run();
-db.prepare("CREATE TABLE IF NOT EXISTS usuarios (usuario TEXT PRIMARY KEY, senha TEXT, admin INTEGER)").run();
+const db = new sqlite3("banco.db");
+db.prepare(\`
+  CREATE TABLE IF NOT EXISTS itens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    nome TEXT,
+    quantidade INTEGER,
+    valor REAL
+  )
+\`).run();
 
-// Usuários padrão
-try {
-  db.prepare("INSERT INTO usuarios (usuario, senha, admin) VALUES (?, ?, ?)").run("admin", "admin123", 1);
-  db.prepare("INSERT INTO usuarios (usuario, senha, admin) VALUES (?, ?, ?)").run("user", "user123", 0);
-} catch (e) {}
+function autenticar(req, res, next) {
+  const { user_id, nivel } = req.headers;
+  if (!user_id || !nivel) return res.status(401).json({ erro: "Não autenticado" });
+  req.user = { id: parseInt(user_id), nivel };
+  next();
+}
 
-app.post("/api/login", (req, res) => {
-  const { usuario, senha } = req.body;
-  const user = db.prepare("SELECT * FROM usuarios WHERE usuario = ? AND senha = ?").get(usuario, senha);
-  if (user) {
-    res.json({ sucesso: true, admin: !!user.admin });
-  } else {
-    res.json({ sucesso: false });
+app.get("/itens", autenticar, (req, res) => {
+  if (req.user.nivel === "admin") {
+    const itens = db.prepare("SELECT * FROM itens").all();
+    return res.json(itens);
   }
-});
-
-app.get("/api/itens", (req, res) => {
-  const itens = db.prepare("SELECT * FROM itens").all();
+  const itens = db.prepare("SELECT * FROM itens WHERE user_id = ?").all(req.user.id);
   res.json(itens);
 });
 
-app.post("/api/itens", (req, res) => {
-  const { nome, quantidade, preco } = req.body;
-  db.prepare("INSERT INTO itens (nome, quantidade, preco) VALUES (?, ?, ?)").run(nome, quantidade, preco);
-  res.sendStatus(201);
+app.post("/itens", autenticar, (req, res) => {
+  const { nome, quantidade, valor } = req.body;
+  db.prepare("INSERT INTO itens (user_id, nome, quantidade, valor) VALUES (?, ?, ?, ?)")
+    .run(req.user.id, nome, quantidade, valor);
+  res.json({ sucesso: true });
 });
 
-app.delete("/api/itens/:id", (req, res) => {
-  db.prepare("DELETE FROM itens WHERE id = ?").run(req.params.id);
-  res.sendStatus(204);
+app.put("/itens/:id", autenticar, (req, res) => {
+  const { nome, quantidade, valor } = req.body;
+  const { id } = req.params;
+  const item = db.prepare("SELECT * FROM itens WHERE id = ?").get(id);
+  if (!item) return res.status(404).json({ erro: "Item não encontrado" });
+  if (req.user.nivel !== "admin" && item.user_id !== req.user.id)
+    return res.status(403).json({ erro: "Sem permissão" });
+  db.prepare("UPDATE itens SET nome = ?, quantidade = ?, valor = ? WHERE id = ?")
+    .run(nome, quantidade, valor, id);
+  res.json({ sucesso: true });
 });
 
-app.listen(3000, () => console.log("Servidor rodando na porta 3000"));
+app.delete("/itens/:id", autenticar, (req, res) => {
+  const { id } = req.params;
+  const item = db.prepare("SELECT * FROM itens WHERE id = ?").get(id);
+  if (!item) return res.status(404).json({ erro: "Item não encontrado" });
+  if (req.user.nivel !== "admin" && item.user_id !== req.user.id)
+    return res.status(403).json({ erro: "Sem permissão" });
+  db.prepare("DELETE FROM itens WHERE id = ?").run(id);
+  res.json({ sucesso: true });
+});
+
+app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT));
