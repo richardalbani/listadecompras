@@ -1,16 +1,24 @@
 {
   "name": "minhas-compras",
   "version": "1.0.0",
+  "description": "Sistema de lista de compras com login e painel administrativo",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
+  "keywords": [
+    "express",
+    "sqlite",
+    "compras",
+    "login",
+    "admin",
+    "painel"
+  ],
+  "author": "Você",
+  "license": "MIT",
   "dependencies": {
     "better-sqlite3": "^8.0.1",
     "cors": "^2.8.5",
     "express": "^4.18.2"
-  },
-  "engines": {
-    "node": "20.x"
   }
 }
