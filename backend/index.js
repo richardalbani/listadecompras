@@ -15,8 +15,12 @@ db.prepare("CREATE TABLE IF NOT EXISTS usuarios (usuario TEXT PRIMARY KEY, senha
 
 // Usuários padrão
 try {
-  db.prepare("INSERT INTO usuarios (usuario, senha, admin) VALUES (?, ?, ?)").run("admin", "admin123", 1);
-  db.prepare("INSERT INTO usuarios (usuario, senha, admin) VALUES (?, ?, ?)").run("user", "user123", 0);
+  db.prepare("INSERT INTO usuarios (usuario, senha, admin) VALUES (?, ?, ?)").run("Richard", "Richard", 1);
+  db.prepare("INSERT INTO usuarios (usuario, senha, admin) VALUES (?, ?, ?)").run("Amor", "Amor", 0);
+  db.prepare("INSERT INTO usuarios (usuario, senha, admin) VALUES (?, ?, ?)").run("teste", "teste", 0);
+   db.prepare("INSERT INTO usuarios (usuario, senha, admin) VALUES (?, ?, ?)").run("Joao", "Joao", 0);
+
+  
 } catch (e) {}
 
 app.post("/api/login", (req, res) => {
