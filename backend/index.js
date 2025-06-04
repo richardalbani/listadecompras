@@ -40,7 +40,7 @@ const usuariosPadrao = [
   ["Richard", "Richard123", 1],
   ["BB", "Italo1103", 0],
   ["Joao", "Joao123", 0],
-  ["user3", "senha3", 0],
+  ["teste", "teste", 0],
 ];
 
 for (const [usuario, senha, admin] of usuariosPadrao) {
