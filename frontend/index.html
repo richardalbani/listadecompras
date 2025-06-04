@@ -5,27 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Minhas Compras</title>
   <style>
-    body { font-family: Arial; padding: 20px; }
+    body { font-family: Arial, sans-serif; padding: 20px; }
     .item { margin-bottom: 10px; }
     .admin { color: green; }
+    #usuarios-com-itens > div {
+      border: 1px solid #ccc;
+      margin: 10px 0;
+      padding: 10px;
+    }
+    #usuarios-com-itens div > div {
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+    }
+    button {
+      margin-left: 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <h1>Minhas Compras</h1>
+
   <div id="login-area">
     <input type="text" id="usuario" placeholder="Usuário">
     <input type="password" id="senha" placeholder="Senha">
     <button onclick="login()">Entrar</button>
   </div>
+
   <div id="app" style="display:none;">
     <h2>Bem-vindo, <span id="usuario-logado"></span></h2>
+
+    <div id="usuarios-com-itens" style="display:none;"></div> <!-- só para admin -->
+
     <input type="text" id="nome" placeholder="Nome do item">
     <input type="number" id="quantidade" placeholder="Quantidade">
-    <input type="number" id="preco" placeholder="Preço">
+    <input type="number" step="0.01" id="preco" placeholder="Preço">
     <button onclick="adicionarItem()">Adicionar</button>
+
     <h3>Lista de Compras</h3>
-    <ul id="lista"></ul>
+    <ul id="lista"></ul> <!-- só para usuário comum -->
   </div>
+
   <script src="app.js"></script>
 </body>
 </html>
