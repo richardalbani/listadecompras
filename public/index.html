@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Minhas Compras</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Minhas Compras</h1>
+
+  <h2>Login</h2>
+  <input id="user" placeholder="Usuário" />
+  <input id="pass" type="password" placeholder="Senha" />
+  <button onclick="login()">Entrar</button>
+
+  <div id="app" style="display:none;">
+    <h2>Lista</h2>
+    <table id="lista">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Qtd</th>
+          <th>Valor</th>
+          <th>Total</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p>Total Geral: R$ <span id="totalGeral">0.00</span></p>
+
+    <h3>Novo Item</h3>
+    <input id="item" placeholder="Item" />
+    <input id="qtd" type="number" placeholder="Quantidade" />
+    <input id="valor" type="number" placeholder="Valor Unitário" />
+    <button onclick="addItem()">Adicionar Item</button>
+    <button onclick="saveList()">Salvar Lista</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
