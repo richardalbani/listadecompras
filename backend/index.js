@@ -8,16 +8,39 @@ app.use(cors());
 app.use(express.json());
 
 const db = new sqlite3("banco.db");
-db.prepare(\`
+
+// Criar tabela users
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT,
+    nivel TEXT
+  )
+`).run();
+
+// Criar tabela itens
+db.prepare(`
   CREATE TABLE IF NOT EXISTS itens (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     nome TEXT,
     quantidade INTEGER,
-    valor REAL
+    valor REAL,
+    FOREIGN KEY(user_id) REFERENCES users(id)
   )
-\`).run();
+`).run();
 
+// Inserir 3 usuários (se não existirem)
+const countUsers = db.prepare("SELECT COUNT(*) AS count FROM users").get().count;
+if (countUsers === 0) {
+  const insertUser = db.prepare("INSERT INTO users (nome, nivel) VALUES (?, ?)");
+  insertUser.run("Admin Master", "admin");
+  insertUser.run("User One", "user");
+  insertUser.run("User Two", "user");
+  console.log("Usuários iniciais criados.");
+}
+
+// Middleware de autenticação simples via headers
 function autenticar(req, res, next) {
   const { user_id, nivel } = req.headers;
   if (!user_id || !nivel) return res.status(401).json({ erro: "Não autenticado" });
@@ -25,6 +48,40 @@ function autenticar(req, res, next) {
   next();
 }
 
+// Rota para admin listar todos os usuários e seus itens (botão cascata)
+app.get("/users", autenticar, (req, res) => {
+  if (req.user.nivel !== "admin") return res.status(403).json({ erro: "Sem permissão" });
+  const users = db.prepare("SELECT id, nome, nivel FROM users").all();
+  const usersWithItems = users.map(user => {
+    const itens = db.prepare("SELECT * FROM itens WHERE user_id = ?").all(user.id);
+    return { ...user, itens };
+  });
+  res.json(usersWithItems);
+});
+
+// Rota para admin editar usuário
+app.put("/users/:id", autenticar, (req, res) => {
+  if (req.user.nivel !== "admin") return res.status(403).json({ erro: "Sem permissão" });
+  const { nome, nivel } = req.body;
+  const { id } = req.params;
+  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(id);
+  if (!user) return res.status(404).json({ erro: "Usuário não encontrado" });
+  db.prepare("UPDATE users SET nome = ?, nivel = ? WHERE id = ?").run(nome, nivel, id);
+  res.json({ sucesso: true });
+});
+
+// Rota para admin deletar usuário e seus itens
+app.delete("/users/:id", autenticar, (req, res) => {
+  if (req.user.nivel !== "admin") return res.status(403).json({ erro: "Sem permissão" });
+  const { id } = req.params;
+  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(id);
+  if (!user) return res.status(404).json({ erro: "Usuário não encontrado" });
+  db.prepare("DELETE FROM itens WHERE user_id = ?").run(id);
+  db.prepare("DELETE FROM users WHERE id = ?").run(id);
+  res.json({ sucesso: true });
+});
+
+// Listar itens (admin vê todos, user vê só os seus)
 app.get("/itens", autenticar, (req, res) => {
   if (req.user.nivel === "admin") {
     const itens = db.prepare("SELECT * FROM itens").all();
@@ -34,6 +91,7 @@ app.get("/itens", autenticar, (req, res) => {
   res.json(itens);
 });
 
+// Criar item (associado ao user logado)
 app.post("/itens", autenticar, (req, res) => {
   const { nome, quantidade, valor } = req.body;
   db.prepare("INSERT INTO itens (user_id, nome, quantidade, valor) VALUES (?, ?, ?, ?)")
@@ -41,6 +99,7 @@ app.post("/itens", autenticar, (req, res) => {
   res.json({ sucesso: true });
 });
 
+// Editar item (admin pode qualquer item, user só seus)
 app.put("/itens/:id", autenticar, (req, res) => {
   const { nome, quantidade, valor } = req.body;
   const { id } = req.params;
@@ -53,6 +112,7 @@ app.put("/itens/:id", autenticar, (req, res) => {
   res.json({ sucesso: true });
 });
 
+// Deletar item (admin pode qualquer item, user só seus)
 app.delete("/itens/:id", autenticar, (req, res) => {
   const { id } = req.params;
   const item = db.prepare("SELECT * FROM itens WHERE id = ?").get(id);
