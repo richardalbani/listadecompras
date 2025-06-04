@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Sistema de lista de compras com login e painel administrativo",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node index.js"
   },
@@ -16,6 +17,9 @@
   ],
   "author": "Você",
   "license": "MIT",
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "better-sqlite3": "^8.0.1",
     "cors": "^2.8.5",
